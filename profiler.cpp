@@ -6,7 +6,6 @@
 #include <cstring>
 
 #include <slib/math.h>
-#include <slib/metric.cpp>
 
 u32 constexpr MAX_PROFILING_POINTS = 100;
 
