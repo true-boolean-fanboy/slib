@@ -20,13 +20,16 @@ uint64_t read_os_timer()
 
 inline uint64_t read_cpu_timer()
 {
+#if defined(__aarch64__) // ARM64 for Apple Silicon
+    return mach_absolute_time();
+#elif defined(__x86_64__) || defined(__i386__) // Intel Macs
     uint32_t high, low;
-
-    // Use assembly for the `rdtsc` equivalent
-    __asm__ volatile(
-        "rdtsc" : "=a"(low), "=d"(high));
-
+    asm volatile(
+            "rdtsc" : "=a"(low), "=d"(high));
     return ((uint64_t)high << 32) | low;
+#else
+#error "Unsupported architecture"
+#endif
 }
 
 #endif

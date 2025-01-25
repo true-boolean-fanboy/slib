@@ -1,7 +1,4 @@
 #include "metric.h"
-#include <intrin.h>
-#include <windows.h>
-#include <slib/types.h>
 
 u64 get_cpu_freq()
 {
