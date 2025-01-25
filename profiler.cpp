@@ -60,6 +60,8 @@ constexpr u32 MAX_COL_WIDTH = 20;
 constexpr u32 MAX_COLUMNS = 10;
 constexpr u32 MAX_ROWS = 15;
 
+constexpr u32 COL_STR_SIZE = MAX_COL_WIDTH + 1;
+
 enum table_cell_align_t
 {
     LEFT,
@@ -70,13 +72,13 @@ enum table_cell_align_t
 struct table_cell_t
 {
     table_cell_align_t alignment;
-    char text[MAX_COL_WIDTH+1];
+    char text[COL_STR_SIZE];
 };
 
 struct table_column_t
 {
     i32 max_width;
-    char header[MAX_COL_WIDTH];
+    char header[COL_STR_SIZE];
     table_cell_t cells[MAX_ROWS];
 };
 
@@ -90,7 +92,7 @@ struct table_t
 void add_column(table_t* table, const char* name)
 {
     table_column_t* column = table->columns + table->num_cols;
-    strncpy_s(column->header, name, MAX_COL_WIDTH);
+    memcpy(column->header, name, COL_STR_SIZE);
 
     column->max_width = max(column->max_width, (i32)strlen(name));
 
@@ -109,9 +111,7 @@ void set_cell(table_t* table, u32 col, u32 row, f64 value, table_cell_align_t al
 
     cell->alignment = align;
 
-    char format_str[100];
-    sprintf_s(format_str, "%.4f", value);
-    strncpy_s(cell->text, format_str, MAX_COL_WIDTH);
+    snprintf(cell->text, COL_STR_SIZE, "%.4f", value);
 
     column->max_width = max(column->max_width, (i32)strlen(cell->text));
 }
@@ -123,9 +123,7 @@ void set_cell(table_t* table, u32 col, u32 row, u64 value, table_cell_align_t al
 
     cell->alignment = align;
 
-    char format_str[100];
-    sprintf_s(format_str, "%llu", value);
-    strncpy_s(cell->text, format_str, MAX_COL_WIDTH);
+    snprintf(cell->text, COL_STR_SIZE,"%llu", value);
 
     column->max_width = max(column->max_width, (i32)strlen(cell->text));
 }
@@ -137,9 +135,7 @@ void set_cell(table_t* table, u32 col, u32 row, const char* value, table_cell_al
 
     cell->alignment = align;
 
-    char format_str[100];
-    sprintf_s(format_str, "%s", value);
-    strncpy_s(cell->text, format_str, MAX_COL_WIDTH);
+    snprintf(cell->text, COL_STR_SIZE, "%s", value);
 
     column->max_width = max(column->max_width, (i32)strlen(cell->text));
 }
@@ -150,7 +146,7 @@ void print_table(table_t* table)
 
     for(u32 i = 0; i < table->num_cols; ++i)
     {
-        sprintf_s(format_str, "%%s| %%-%ds", table->columns[i].max_width);
+        snprintf(format_str, 1024, "%%s| %%-%ds", table->columns[i].max_width);
         printf(format_str, 
                i == 0 ? "" : " ",
                table->columns[i].header);
@@ -180,17 +176,17 @@ void print_table(table_t* table)
             switch(cell->alignment)
             {
                 case LEFT: 
-                    sprintf_s(format_str, "%%s| %%-%ds", column->max_width);
+                    sprintf(format_str, "%%s| %%-%ds", column->max_width);
                     break;
                 case RIGHT: 
-                    sprintf_s(format_str, "%%s| %%%ds", column->max_width);
+                    sprintf(format_str, "%%s| %%%ds", column->max_width);
                     break;
                 case CENTER: 
                     {
                         u32 len = (u32)strlen(cell->text);
                         u32 padding = 
                             (column->max_width - len) / 2;
-                        sprintf_s(format_str,
+                        sprintf(format_str,
                                 "%%s| %*s%%s%*s",
                                 padding, "",
                                 (column->max_width - len) - padding, "");
@@ -264,12 +260,12 @@ profiling_end()
             f64 seconds = (f64)point->total_time / (f64)cpu_freq;
             f64 bytes_per_second = (f64)point->processed_bytes / seconds;
             f64 gigabytes_per_second = bytes_per_second / gigabyte;
-            set_cell(&table, 8, row, gigabytes_per_second, RIGHT);
+            set_cell(&table, 9, row, gigabytes_per_second, RIGHT);
         }
         else
         {
-            set_cell(&table, 7, row, "N/A", RIGHT);
             set_cell(&table, 8, row, "N/A", RIGHT);
+            set_cell(&table, 9, row, "N/A", RIGHT);
         }
 
         if(table.num_rows >= MAX_ROWS)
