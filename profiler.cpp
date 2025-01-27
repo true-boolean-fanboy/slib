@@ -61,6 +61,8 @@ constexpr u32 MAX_COLUMNS = 10;
 constexpr u32 MAX_ROWS = 15;
 
 constexpr u32 COL_STR_SIZE = MAX_COL_WIDTH + 1;
+constexpr u32 ROW_STR_SIZE = (MAX_COL_WIDTH * MAX_COLUMNS) + (MAX_COLUMNS + 1);
+constexpr u32 TABLE_STR_SIZE = ROW_STR_SIZE * (MAX_ROWS + 1 + 1) + 1;
 
 enum table_cell_align_t
 {
@@ -142,7 +144,7 @@ void set_cell(table_t* table, u32 col, u32 row, const char* value, table_cell_al
 
 void print_table(table_t* table)
 {
-    char format_str[1024];
+    char format_str[TABLE_STR_SIZE];
 
     for(u32 i = 0; i < table->num_cols; ++i)
     {
@@ -176,17 +178,18 @@ void print_table(table_t* table)
             switch(cell->alignment)
             {
                 case LEFT: 
-                    sprintf(format_str, "%%s| %%-%ds", column->max_width);
+                    snprintf(format_str, TABLE_STR_SIZE, "%%s| %%-%ds", column->max_width);
                     break;
                 case RIGHT: 
-                    sprintf(format_str, "%%s| %%%ds", column->max_width);
+                    snprintf(format_str, TABLE_STR_SIZE, "%%s| %%%ds", column->max_width);
                     break;
                 case CENTER: 
                     {
                         u32 len = (u32)strlen(cell->text);
                         u32 padding = 
                             (column->max_width - len) / 2;
-                        sprintf(format_str,
+                        snprintf(format_str,
+                                TABLE_STR_SIZE,
                                 "%%s| %*s%%s%*s",
                                 padding, "",
                                 (column->max_width - len) - padding, "");
